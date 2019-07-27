@@ -1,0 +1,136 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:,">
+    <script type='text/javascript'>
+var imgElem;
+var imgCanvas;
+var chart;
+var ctx;
+var rafID = 0;
+var counter = 0;
+var boxX = 0, boxY = 0;
+
+
+
+function E(n) {return document.getElementById(n);}
+
+function stopRunner () 
+{
+    if (rafID) {
+        window.cancelRequestAnimationFrame(rafID);
+        rafID = 0;
+    }
+}
+
+function onLoadImage()
+{
+    with(ctx) {
+        if (boxX == 0) {
+            boxX = imgElem.width/2;
+            boxY = imgElem.height/2;
+            with(E("myCanvasCont"))
+            {
+                style.width = imgElem.width;
+                style.height = imgElem.height;
+            }
+            with(imgCanvas)
+            {
+                width = imgElem.width;
+                height = imgElem.height;
+            }
+        }
+        drawImage(imgElem, 0, 0);
+        lineWidth = 1;
+        strokeStyle = "#fff";
+        strokeRect(boxX-25,boxY-25,50,50);
+        strokeStyle = "#777";
+        strokeRect(boxX-26,boxY-26,52,52);
+    }
+}
+
+function getOneImage(timestamp)
+{
+    var now =  new Date().getTime();
+    if (counter++ % 4 == 0) {
+        imgElem.src = "get#" + now;
+    }
+    chart.src= "chart#" + now;
+
+    rafID = window.requestAnimationFrame(getOneImage);
+
+}
+
+function getAbsLeftTop(elem)
+{
+    var p = elem.offsetParent;
+    var l = elem.offsetLeft;
+    var t = elem.offsetTop;
+    while (p) {
+        l += p.offsetLeft;
+        t += p.offsetTop;
+        p = p.offsetParent;
+    }
+    return [l, t];
+}
+
+function clicked (evt) 
+{
+    var mx = evt.clientX;
+    var my = evt.clientY;
+    var lt = getAbsLeftTop(imgCanvas);
+    boxX = mx - lt[0];
+    boxY = my - lt[1];
+    E('inpx').value = boxX;
+    E('inpy').value = boxY;
+
+    E('form1').submit();
+}
+
+function startAll ()
+{
+    chart = E("chart")
+    imgElem = document.createElement("img");
+    imgElem.onload = onLoadImage;
+    imgElem.src = "get";
+    var cont = E("myCanvasCont");
+    imgCanvas = document.createElement("canvas");
+    imgCanvas.onclick = clicked;
+    ctx = imgCanvas.getContext("2d");
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    cont.appendChild(imgCanvas);
+    window.onbeforeunload = stopRunner;
+    rafID = window.requestAnimationFrame(getOneImage);
+}
+
+    </script>
+</head>
+<body>
+    <h1>Breathing Rate Monitor </h1>
+    <table>
+        <tr><td>
+            Use mouse to click on the image to<br>
+            find best spot to monitor.<br>
+            For example, area between chin and chest.
+            </td>
+            <td></td>&nbsp;
+        <tr><td>
+                <div id='myCanvasCont'></div>
+            </td>
+            <td>
+                <img id='chart' src='chart'>
+            </td>
+    </table>
+
+    <hr>
+    This page was originally created by Shui Hung Kwok, 2014-03-09 and proudly modified by Brun0oO, 2019-07-25 ;o)
+
+    <form id='form1' target='f1' action='clicked'>
+        <input type='hidden' name='inpx' id ='inpx'>
+        <input type='hidden' name='inpy' id ='inpy'>
+        <input type='hidden' name='sigma' id ='sigma' value='0.2'>
+    </form>
+    <iframe name='f1' style='display:none'></iframe>
+    <script>startAll();</script>
+</body>
+</html>
